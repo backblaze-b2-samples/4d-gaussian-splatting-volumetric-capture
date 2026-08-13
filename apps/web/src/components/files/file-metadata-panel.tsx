@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { FileMetadataDetail } from "@vibe-coding-starter-kit/shared";
+import type { FileMetadataDetail } from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 interface FileMetadataPanelProps {
   metadata: FileMetadataDetail;

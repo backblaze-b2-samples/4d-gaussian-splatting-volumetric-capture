@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make Vibe Coding Starter Kit the canonical identity across the shipped web app,
+Make 4D Gaussian Splatting Volumetric Capture the canonical identity across the shipped web app,
 local FastAPI metadata, checked-in OpenAPI contract, and public documentation.
 Clarify when the template is appropriate, how it is maintained, and the
 official no-SLA boundary without weakening its documented engineering quality.
@@ -35,7 +35,7 @@ official no-SLA boundary without weakening its documented engineering quality.
 
 ## Result
 
-The web app and local API now ship under the Vibe Coding Starter Kit identity.
+The web app and local API now ship under the 4D Gaussian Splatting Volumetric Capture identity.
 The deterministic OpenAPI artifact names the template's local API and rules out
 interpretation as a hosted public endpoint. Public docs now explain selection,
 reuse, maintenance, support, production caution, and the no-SLA boundary while

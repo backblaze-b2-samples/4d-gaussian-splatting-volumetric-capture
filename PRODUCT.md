@@ -6,30 +6,34 @@ product
 
 ## Users
 
-AI coding agents and "vibe coders" (developers who lean on AI to move fast) who clone
-this kit as the foundation for a new full-stack app. Their context: they want to skip
-the boilerplate loop (dashboard, upload, file browser, cloud storage wiring) and go
-straight to building their app's unique features. They read the repo, keep the shared
-scaffolding, and rebrand + rewrite the dashboard for their own use case.
+Volumetric-capture / VFX engineers and AI/3D practitioners building a dynamic 4D
+reconstruction pipeline, plus AI coding agents scaffolding one. Their context: they film
+a moving scene with dozens of synchronized cameras and need durable, cheap, S3-compatible
+object storage for the huge fan-out of intermediate and final artifacts — source video,
+thousands of extracted frames, calibration, multi-GB training checkpoints, and the final
+splat model. They want a working, engineering-minded scaffold that talks to Backblaze B2
+out of the box, runs the CPU stages anywhere, and gates the CUDA training tail cleanly.
 
 ## Product Purpose
 
-An engineering-grade full-stack starter kit (Next.js 16 + React 19 + Tailwind v4 +
-shadcn/ui frontend, FastAPI backend) with Backblaze B2 cloud storage integrated out of
-the box. It ships a dashboard, drag-and-drop upload, and a file browser so builders
-start from a working app, not a blank page. Success = a builder can clone it, run it,
-rebrand it via one config file, and trust every screen enough to build on top without
-first fixing it.
+A capture-to-B2 pipeline (Next.js 16 + React 19 + Tailwind v4 + shadcn/ui frontend,
+FastAPI backend) that turns synchronized multi-camera video into a hustvl/4DGaussians
+`multipleview` dataset and a trained, time-varying Gaussian-Splatting model, with every
+input and derived artifact versioned in Backblaze B2. The primary entity is a **Session**
+whose record is a JSON manifest in B2 (no database). Success = a user can create a session,
+run it to stage a real multipleview dataset + init cloud on B2, see the write-amplification
+fan-out, and — on a CUDA host — train and export a real splat, never a faked one.
 
 ## Maturity and Support Boundary
 
-This is a maintained open-source template/sample, not a complete hosted SaaS product.
-It is built with production-minded controls and can be adapted for production use with
-caution, but adopters own product-specific validation, security, deployment, and
-operations. Repository defects and feature requests go through the public GitHub issue
-tracker; B2 account, billing, service, and API questions go through Backblaze Support.
-The template/sample itself is not covered by the Backblaze service level agreement,
-and no SLA is provided for the repository software.
+This is a maintained open-source template/sample, not a complete hosted SaaS product or a
+managed 4D-reconstruction service; it bundles no GPU compute. It is built with
+production-minded controls and can be adapted for production use with caution, but adopters
+own product-specific validation, security, deployment, and operations. Repository defects
+and feature requests go through the public GitHub issue tracker; B2 account, billing,
+service, and API questions go through Backblaze Support. The template/sample itself is not
+covered by the Backblaze service level agreement, and no SLA is provided for the repository
+software.
 
 ## Brand Personality
 

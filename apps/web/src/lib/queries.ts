@@ -8,19 +8,30 @@ import {
 } from "@tanstack/react-query";
 import {
   ApiError,
+  createSession,
   deleteFile,
+  deleteSession,
   getDownloadUrl,
   getFileDetail,
   getFiles,
   getFileStats,
   getHealth,
   getPreviewUrl,
+  getSession,
+  getSessions,
+  getSessionStats,
+  getSessionStorage,
   getUploadActivity,
+  runSession,
+  updateSession,
 } from "@/lib/api-client";
 import type {
   FileMetadata,
   FileMetadataDetail,
-} from "@vibe-coding-starter-kit/shared";
+  Session,
+  SessionCreate,
+  SessionUpdate,
+} from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 // Single source of truth for query keys. Keep these tightly scoped so that
 // invalidating "files" doesn't blow away unrelated caches, and so an IDE
@@ -35,6 +46,11 @@ export const qk = {
   preview: (key: string) => [...qk.all, "preview", key] as const,
   detail: (key: string) => [...qk.all, "detail", key] as const,
   health: () => [...qk.all, "health"] as const,
+  sessions: () => [...qk.all, "sessions"] as const,
+  session: (id: string) => [...qk.all, "sessions", id] as const,
+  sessionStats: () => [...qk.all, "sessions", "stats"] as const,
+  sessionStorage: (id: string) =>
+    [...qk.all, "sessions", id, "storage"] as const,
 };
 
 export type Health = Awaited<ReturnType<typeof getHealth>>;
@@ -167,5 +183,83 @@ export function useDeleteFile() {
       dropDeletedFileFromCache(qc, fileKey);
       qc.invalidateQueries({ queryKey: qk.all });
     },
+  });
+}
+
+// --- Sessions --------------------------------------------------------------
+
+export function useSessions() {
+  return useQuery<Session[], ApiError>({
+    queryKey: qk.sessions(),
+    queryFn: getSessions,
+  });
+}
+
+export function useSessionStats() {
+  return useQuery({
+    queryKey: qk.sessionStats(),
+    queryFn: getSessionStats,
+  });
+}
+
+/**
+ * One session's manifest. While the pipeline is running the manifest changes
+ * stage by stage, so poll every 2s until the run reaches a terminal state —
+ * that is what makes the detail page's stage timeline advance live.
+ */
+export function useSession(id: string | undefined) {
+  return useQuery<Session, ApiError>({
+    queryKey: qk.session(id ?? ""),
+    queryFn: () => getSession(id as string),
+    enabled: !!id,
+    refetchInterval: (query) =>
+      query.state.data?.status === "running" ? 2000 : false,
+  });
+}
+
+export function useSessionStorage(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: qk.sessionStorage(id ?? ""),
+    queryFn: () => getSessionStorage(id as string),
+    enabled: enabled && !!id,
+  });
+}
+
+export function useCreateSession() {
+  const qc = useQueryClient();
+  return useMutation<Session, ApiError, SessionCreate>({
+    mutationFn: (payload) => createSession(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.sessions() }),
+  });
+}
+
+export function useUpdateSession(id: string) {
+  const qc = useQueryClient();
+  return useMutation<Session, ApiError, SessionUpdate>({
+    mutationFn: (patch) => updateSession(id, patch),
+    onSuccess: (session) => {
+      qc.setQueryData(qk.session(id), session);
+      qc.invalidateQueries({ queryKey: qk.sessions() });
+    },
+  });
+}
+
+export function useRunSession(id: string) {
+  const qc = useQueryClient();
+  return useMutation<Session, ApiError, void>({
+    mutationFn: () => runSession(id),
+    onSuccess: (session) => {
+      // Seed the cache as "running" so the poll (useSession) takes over live.
+      qc.setQueryData(qk.session(id), session);
+      qc.invalidateQueries({ queryKey: qk.sessions() });
+    },
+  });
+}
+
+export function useDeleteSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteSession(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.all }),
   });
 }

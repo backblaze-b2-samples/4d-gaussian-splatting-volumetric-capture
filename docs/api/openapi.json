@@ -373,6 +373,638 @@
         "title": "PresignUploadResponse",
         "type": "object"
       },
+      "Session": {
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/SessionArtifact"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/SessionMetrics"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "params": {
+            "$ref": "#/components/schemas/SessionParams"
+          },
+          "preview_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Key"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/SessionStage"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "ready",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "train_command": {
+            "default": "",
+            "title": "Train Command",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "params",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "SessionArtifact": {
+        "properties": {
+          "bytes": {
+            "default": 0,
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "content_type": {
+            "default": "application/octet-stream",
+            "title": "Content Type",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "video",
+              "frames",
+              "calibration",
+              "init_cloud",
+              "checkpoint",
+              "model",
+              "manifest",
+              "preview",
+              "dataset"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "object_count": {
+            "default": 1,
+            "title": "Object Count",
+            "type": "integer"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          }
+        },
+        "required": [
+          "kind",
+          "key"
+        ],
+        "title": "SessionArtifact",
+        "type": "object"
+      },
+      "SessionCreate": {
+        "properties": {
+          "frames_per_camera": {
+            "default": 12,
+            "enum": [
+              12,
+              24,
+              48
+            ],
+            "title": "Frames Per Camera",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "num_cameras": {
+            "default": 4,
+            "enum": [
+              4,
+              8,
+              12,
+              20
+            ],
+            "title": "Num Cameras",
+            "type": "integer"
+          },
+          "quality": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "balanced",
+              "high"
+            ],
+            "title": "Quality",
+            "type": "string"
+          },
+          "scene_preset": {
+            "default": "orbit-dancer",
+            "enum": [
+              "orbit-dancer",
+              "bouncing-prims",
+              "rotating-bust"
+            ],
+            "title": "Scene Preset",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SessionCreate",
+        "type": "object"
+      },
+      "SessionMetrics": {
+        "properties": {
+          "checkpoint_bytes": {
+            "default": 0,
+            "title": "Checkpoint Bytes",
+            "type": "integer"
+          },
+          "device": {
+            "default": "cpu",
+            "title": "Device",
+            "type": "string"
+          },
+          "duration_seconds": {
+            "default": 0.0,
+            "title": "Duration Seconds",
+            "type": "number"
+          },
+          "frame_bytes": {
+            "default": 0,
+            "title": "Frame Bytes",
+            "type": "integer"
+          },
+          "frames_per_camera": {
+            "default": 0,
+            "title": "Frames Per Camera",
+            "type": "integer"
+          },
+          "init_points": {
+            "default": 0,
+            "title": "Init Points",
+            "type": "integer"
+          },
+          "model_bytes": {
+            "default": 0,
+            "title": "Model Bytes",
+            "type": "integer"
+          },
+          "model_points": {
+            "default": 0,
+            "title": "Model Points",
+            "type": "integer"
+          },
+          "num_cameras": {
+            "default": 0,
+            "title": "Num Cameras",
+            "type": "integer"
+          },
+          "source_bytes": {
+            "default": 0,
+            "title": "Source Bytes",
+            "type": "integer"
+          },
+          "total_frames": {
+            "default": 0,
+            "title": "Total Frames",
+            "type": "integer"
+          },
+          "trained": {
+            "default": false,
+            "title": "Trained",
+            "type": "boolean"
+          },
+          "write_amplification": {
+            "default": 0.0,
+            "title": "Write Amplification",
+            "type": "number"
+          }
+        },
+        "title": "SessionMetrics",
+        "type": "object"
+      },
+      "SessionParams": {
+        "description": "The tunable, finite-option capture parameters shared by create/edit.",
+        "properties": {
+          "frames_per_camera": {
+            "default": 12,
+            "enum": [
+              12,
+              24,
+              48
+            ],
+            "title": "Frames Per Camera",
+            "type": "integer"
+          },
+          "num_cameras": {
+            "default": 4,
+            "enum": [
+              4,
+              8,
+              12,
+              20
+            ],
+            "title": "Num Cameras",
+            "type": "integer"
+          },
+          "quality": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "balanced",
+              "high"
+            ],
+            "title": "Quality",
+            "type": "string"
+          },
+          "scene_preset": {
+            "default": "orbit-dancer",
+            "enum": [
+              "orbit-dancer",
+              "bouncing-prims",
+              "rotating-bust"
+            ],
+            "title": "Scene Preset",
+            "type": "string"
+          }
+        },
+        "title": "SessionParams",
+        "type": "object"
+      },
+      "SessionStage": {
+        "properties": {
+          "bytes": {
+            "default": 0,
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "enum": [
+              "ingest",
+              "extract",
+              "calibrate",
+              "stage",
+              "train",
+              "export"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "object_count": {
+            "default": 0,
+            "title": "Object Count",
+            "type": "integer"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SessionStage",
+        "type": "object"
+      },
+      "SessionStats": {
+        "description": "Dashboard aggregates across every session.",
+        "properties": {
+          "avg_write_amplification": {
+            "default": 0.0,
+            "title": "Avg Write Amplification",
+            "type": "number"
+          },
+          "running_sessions": {
+            "default": 0,
+            "title": "Running Sessions",
+            "type": "integer"
+          },
+          "total_bytes": {
+            "default": 0,
+            "title": "Total Bytes",
+            "type": "integer"
+          },
+          "total_bytes_human": {
+            "default": "",
+            "title": "Total Bytes Human",
+            "type": "string"
+          },
+          "total_derived_bytes": {
+            "default": 0,
+            "title": "Total Derived Bytes",
+            "type": "integer"
+          },
+          "total_frames": {
+            "default": 0,
+            "title": "Total Frames",
+            "type": "integer"
+          },
+          "total_sessions": {
+            "default": 0,
+            "title": "Total Sessions",
+            "type": "integer"
+          },
+          "total_source_bytes": {
+            "default": 0,
+            "title": "Total Source Bytes",
+            "type": "integer"
+          },
+          "trained_sessions": {
+            "default": 0,
+            "title": "Trained Sessions",
+            "type": "integer"
+          }
+        },
+        "title": "SessionStats",
+        "type": "object"
+      },
+      "SessionStorage": {
+        "properties": {
+          "derived_bytes": {
+            "default": 0,
+            "title": "Derived Bytes",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_bytes": {
+            "default": 0,
+            "title": "Source Bytes",
+            "type": "integer"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageStorage"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "total_bytes": {
+            "default": 0,
+            "title": "Total Bytes",
+            "type": "integer"
+          },
+          "total_objects": {
+            "default": 0,
+            "title": "Total Objects",
+            "type": "integer"
+          },
+          "write_amplification": {
+            "default": 0.0,
+            "title": "Write Amplification",
+            "type": "number"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "title": "SessionStorage",
+        "type": "object"
+      },
+      "SessionUpdate": {
+        "description": "PATCH body \u2014 every field optional. Only allowed pre-run (draft/ready).",
+        "properties": {
+          "frames_per_camera": {
+            "anyOf": [
+              {
+                "enum": [
+                  12,
+                  24,
+                  48
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frames Per Camera"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "num_cameras": {
+            "anyOf": [
+              {
+                "enum": [
+                  4,
+                  8,
+                  12,
+                  20
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Cameras"
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "balanced",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality"
+          },
+          "scene_preset": {
+            "anyOf": [
+              {
+                "enum": [
+                  "orbit-dancer",
+                  "bouncing-prims",
+                  "rotating-bust"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scene Preset"
+          }
+        },
+        "title": "SessionUpdate",
+        "type": "object"
+      },
+      "StageStorage": {
+        "description": "Per-pipeline-stage B2 footprint for the scoped storage explorer.",
+        "properties": {
+          "bytes": {
+            "default": 0,
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "bytes_human": {
+            "default": "",
+            "title": "Bytes Human",
+            "type": "string"
+          },
+          "object_count": {
+            "default": 0,
+            "title": "Object Count",
+            "type": "integer"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "prefix"
+        ],
+        "title": "StageStorage",
+        "type": "object"
+      },
       "UploadStats": {
         "properties": {
           "total_downloads": {
@@ -463,8 +1095,8 @@
     }
   },
   "info": {
-    "description": "Local API for the Vibe Coding Starter Kit template, providing file upload and management backed by Backblaze B2. This contract documents the template's local API, not a hosted public endpoint.",
-    "title": "Vibe Coding Starter Kit API",
+    "description": "Local API for 4D Gaussian Splatting Volumetric Capture: a capture-to-B2 pipeline that turns synchronized multi-camera video into a 4DGaussians dataset and trained volumetric splat, with every input and derived artifact versioned in Backblaze B2. This contract documents the template's local API, not a hosted public endpoint.",
+    "title": "4D Gaussian Splatting Volumetric Capture API",
     "version": "0.1.0"
   },
   "openapi": "3.1.0",
@@ -996,6 +1628,360 @@
         "summary": "Metrics",
         "tags": [
           "metrics"
+        ]
+      }
+    },
+    "/sessions": {
+      "get": {
+        "operationId": "list_sessions_endpoint_sessions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Session"
+                  },
+                  "title": "Response List Sessions Endpoint Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Sessions Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      },
+      "post": {
+        "operationId": "create_session_endpoint_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/stats": {
+      "get": {
+        "operationId": "session_stats_endpoint_sessions_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Session Stats Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}": {
+      "delete": {
+        "operationId": "delete_session_endpoint_sessions__session_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      },
+      "get": {
+        "operationId": "get_session_endpoint_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      },
+      "patch": {
+        "operationId": "update_session_endpoint_sessions__session_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/ingest": {
+      "post": {
+        "description": "Presign a direct-to-B2 PUT for one camera's source video (supporting verb).\n\nThe browser uploads bytes straight to `captures/<id>/<camera>/<file>`; the\nrun pipeline then extracts frames from whatever source video is present.",
+        "operationId": "ingest_session_endpoint_sessions__session_id__ingest_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Req",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignUploadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/run": {
+      "post": {
+        "operationId": "run_session_endpoint_sessions__session_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Session Endpoint",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/sessions/{session_id}/storage": {
+      "get": {
+        "operationId": "session_storage_endpoint_sessions__session_id__storage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStorage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Storage Endpoint",
+        "tags": [
+          "sessions"
         ]
       }
     },

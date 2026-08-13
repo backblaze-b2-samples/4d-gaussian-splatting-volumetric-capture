@@ -4,8 +4,13 @@ import type {
   FileMetadataDetail,
   FileUploadResponse,
   PresignUploadResponse,
+  Session,
+  SessionCreate,
+  SessionStats,
+  SessionStorage,
+  SessionUpdate,
   UploadStats,
-} from "@vibe-coding-starter-kit/shared";
+} from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 // Single-origin deploys (Vercel `services`: one project serving web + API) put
 // the API under /api on the same origin, so no NEXT_PUBLIC_API_URL is needed —
@@ -17,12 +22,22 @@ export const API_BASE =
   (process.env.NODE_ENV === "production" ? "/api" : "http://localhost:8000");
 
 type ApiClientRoute = {
-  method: "delete" | "get" | "post";
+  method: "delete" | "get" | "patch" | "post";
   path: string;
 };
 
 export const API_CLIENT_ROUTES = {
   health: { method: "get", path: "/health" },
+  // 4D volumetric capture Sessions (primary entity — full lifecycle).
+  sessions: { method: "get", path: "/sessions" },
+  sessionCreate: { method: "post", path: "/sessions" },
+  sessionStats: { method: "get", path: "/sessions/stats" },
+  session: { method: "get", path: "/sessions/{session_id}" },
+  sessionUpdate: { method: "patch", path: "/sessions/{session_id}" },
+  sessionDelete: { method: "delete", path: "/sessions/{session_id}" },
+  sessionRun: { method: "post", path: "/sessions/{session_id}/run" },
+  sessionStorage: { method: "get", path: "/sessions/{session_id}/storage" },
+  sessionIngest: { method: "post", path: "/sessions/{session_id}/ingest" },
   files: { method: "get", path: "/files" },
   fileStats: { method: "get", path: "/files/stats" },
   uploadActivity: { method: "get", path: "/files/stats/activity" },
@@ -201,6 +216,66 @@ function isLegacyPathFallbackSafe(
 export async function getHealth() {
   return apiFetch<{ status: string; b2_connected: boolean }>(
     API_CLIENT_ROUTES.health.path
+  );
+}
+
+// --- Sessions --------------------------------------------------------------
+
+function sessionPath(template: string, id: string): string {
+  return template.replace("{session_id}", encodeURIComponent(id));
+}
+
+function jsonInit(method: string, body?: unknown): RequestInit {
+  return {
+    method: method.toUpperCase(),
+    headers: { "Content-Type": "application/json" },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  };
+}
+
+export async function getSessions() {
+  return apiFetch<Session[]>(API_CLIENT_ROUTES.sessions.path);
+}
+
+export async function getSessionStats() {
+  return apiFetch<SessionStats>(API_CLIENT_ROUTES.sessionStats.path);
+}
+
+export async function getSession(id: string) {
+  return apiFetch<Session>(sessionPath(API_CLIENT_ROUTES.session.path, id));
+}
+
+export async function getSessionStorage(id: string) {
+  return apiFetch<SessionStorage>(
+    sessionPath(API_CLIENT_ROUTES.sessionStorage.path, id)
+  );
+}
+
+export async function createSession(payload: SessionCreate) {
+  return apiFetch<Session>(
+    API_CLIENT_ROUTES.sessionCreate.path,
+    jsonInit(API_CLIENT_ROUTES.sessionCreate.method, payload)
+  );
+}
+
+export async function updateSession(id: string, patch: SessionUpdate) {
+  return apiFetch<Session>(
+    sessionPath(API_CLIENT_ROUTES.sessionUpdate.path, id),
+    jsonInit(API_CLIENT_ROUTES.sessionUpdate.method, patch)
+  );
+}
+
+export async function runSession(id: string) {
+  return apiFetch<Session>(
+    sessionPath(API_CLIENT_ROUTES.sessionRun.path, id),
+    jsonInit(API_CLIENT_ROUTES.sessionRun.method)
+  );
+}
+
+export async function deleteSession(id: string) {
+  return apiFetch<{ deleted: boolean; id: string; objects_removed: number }>(
+    sessionPath(API_CLIENT_ROUTES.sessionDelete.path, id),
+    { method: API_CLIENT_ROUTES.sessionDelete.method.toUpperCase() }
   );
 }
 

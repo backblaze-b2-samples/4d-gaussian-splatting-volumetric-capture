@@ -9,7 +9,7 @@
  * rest of the checker: it must run in any copy of the starter, including one
  * with no work tree. None of the assertions hardcode the current name — they
  * check *derivation / consistency*, so they hold for the starter itself (all
- * "Vibe Coding Starter Kit") and for any rebranded clone (all the new name).
+ * "4D Gaussian Splatting Volumetric Capture") and for any rebranded clone (all the new name).
  *
  * Invariants:
  *  1. The FastAPI title derives from the frontend's single display name

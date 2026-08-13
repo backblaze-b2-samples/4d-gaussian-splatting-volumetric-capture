@@ -1,53 +1,104 @@
-<!-- last_verified: 2026-08-06 -->
+<!-- last_verified: 2026-08-13 -->
 # App Workflows
 
-User journeys inside the application.
+User journeys inside the application. The primary entity is a **Session** (a 4D
+volumetric capture); its record is a JSON manifest in B2, so every journey below is
+backed by object storage, not a database.
 
-## Upload Files
+## Create a Session
+
+- User navigates to `/sessions/new`
+- Fills the capture parameters. Finite-option fields are **selectors** (never free text):
+  scene preset (`orbit-dancer` | `bouncing-prims` | `rotating-bust`), number of cameras
+  (`4 | 8 | 12 | 20`), frames per camera (`12 | 24 | 48`), and training quality
+  (`draft | balanced | high`). Safe fast defaults are surfaced as field descriptions
+  (never an autofill button): `orbit-dancer`, 4 cameras, 12 frames, `draft`
+- Submitting writes a `draft` `sessions/<id>/manifest.json` to B2 and routes to the detail page
+- See: [Sessions](features/sessions.md)
+
+## Browse Sessions
+
+- User navigates to `/sessions`
+- A grid of session cards shows name, scene preset, camera/frame counts, status, and
+  (once run) the write-amplification ratio
+- Empty state prompts creating the first session
+- See: [Sessions](features/sessions.md)
+
+## Run a Session
+
+- On the detail page (`/sessions/[id]`) the user clicks **Run**
+- The API kicks the pipeline onto a background thread and returns immediately; the page
+  polls the manifest every 2s so the stage timeline advances **live**
+- Stages: ingest → extract → calibrate → stage → train → export. The CPU stages run for
+  real (synthetic footage is generated if no source video was ingested); the CUDA-only
+  train/export tail auto-gates on a non-CUDA host and is marked "skipped (CUDA required)"
+- The detail page shows the multi-view preview, the stage timeline, 4D metrics, the exact
+  4DGaussians `train.py` command, and the per-session storage breakdown
+- A session is re-runnable
+- See: [Multi-view ingest](features/multiview-ingest.md), [4D training](features/fourd-training.md)
+
+## Edit a Session
+
+- User navigates to `/sessions/[id]/edit` (or clicks **Edit** on the detail page)
+- The form opens pre-filled from the real manifest; tunable params + name can change while
+  the session is `draft` or `ready`
+- Once a session has run, its parameters are **locked** — the edit page shows a clear
+  "parameters are locked" notice with a link back, and the API rejects the PATCH with a 409
+- See: [Sessions](features/sessions.md)
+
+## Delete a Session
+
+- On the detail page the user clicks **Delete** and confirms
+- The API removes the manifest **and every B2 object under the session's prefixes**
+  (source video, frames, calibration, dataset, checkpoints, model, preview) — strictly
+  scoped to that one session id, so no other session's or app's data is ever touched
+- See: [Sessions](features/sessions.md)
+
+## Inspect per-session storage (write amplification)
+
+- The detail page's **Artifacts / Storage** panel lists each pipeline stage with its object
+  count and bytes, plus the source → derived fan-out and the write-amplification multiplier
+- The dashboard aggregates this across every session
+- See: [Write amplification](features/write-amplification.md)
+
+## Upload source video (full-bucket Upload, kept)
 
 - User navigates to `/upload`
-- Drops or selects files in the dropzone
-- Client validates file size (max 100MB) and type
-- Files upload **directly from the browser to B2** (a presigned PUT). A determinate progress bar tracks the bytes leaving the browser; once they are all sent the row switches to "Verifying upload..." with an *indeterminate* sweeping bar while the API HEADs and magic-byte-sniffs the stored object. That phase has no percentage to report, and a bar parked at a full 100% read as finished-but-stuck
-- On success: toast notification, green checkmark, and a "View in Files" link through to the browser
-- On failure: red status icon with error message
-- User can clear completed uploads
-- The queue lives in an app-wide provider: navigating to another page keeps the upload running, shows an "Uploading N files" indicator in the header, and keeps the duplicate-upload guard armed
-- Reloading or closing mid-upload asks for confirmation first; if the upload dies anyway, the next load says which file didn't finish
+- Drops or selects files in the dropzone; the client validates size (max 100MB) and type
+- Files upload **directly from the browser to B2** (a presigned PUT) with a determinate
+  progress bar, then an indeterminate "Verifying upload..." phase while the API inspects the
+  stored object
+- The queue lives in an app-wide provider, so navigating away keeps the upload running
 - See: [File Upload](features/file-upload.md)
 
-## Browse and Manage Files
+## Browse and Manage the Bucket (full-bucket Explorer, kept)
 
 - User navigates to `/files`
-- Page loads the 100 most recent objects from the API (sorted most recent first). While it loads, the page says so on screen and escalates the wording if the wait runs long — a full bucket listing measured 2.8s-21s cold
-- If that limit was hit, a notice states how many objects the bucket actually holds — the page never claims to show everything
-- Files displayed in tree view with folders and type-specific icons
-- Folders auto-expand on load until the *majority* of the listed files are reachable without clicking, so the page's own "click a file" instruction is always actionable. Stopping at the first visible file was not enough: one stray top-level object left the other 99 sealed in collapsed folders while the page claimed to show 100
-- Clicking a file row opens its preview; the per-row actions menu (preview / download / delete) is always visible, on every viewport
-- Arriving at `/files?preview=<key>` expands that file's folders and opens its preview directly. This is how the ⌘K palette and the dashboard's recent-uploads rows hand off a *specific* file; the param is consumed on arrival so it doesn't re-fire later
-- **Preview**: opens dialog with image/PDF preview + metadata panel, and the file's Download / Delete actions — the advertised "click a file" path offers everything the row menu does. The loading state holds until the media paints; a failure offers "Open in a new tab". The preview URL is signed with `Content-Disposition: inline` so PDFs render in place
-- **Download**: shows a pending state on the row plus a toast while the presigned URL is fetched, then starts the download via an anchor click (which, unlike a popup, still works if the click's user activation expired during a slow presign). Failures are reported; the click can never silently do nothing
-- **Delete**: the confirmation dialog stays open showing "Deleting..." until the request settles, then the row disappears with the toast (optimistic cache update) and the list reconciles with the server. The dialog is held deliberately — Radix closes on action click by default, which dismissed the only pending state and left the row looking untouched while the delete was still in flight
-- Empty bucket shows "No files found" with upload prompt
+- The page loads the 100 most recent objects (most recent first); a long cold listing is
+  narrated on screen. Files show in a tree view with type-specific icons
+- Clicking a file opens a preview dialog (image/PDF) with a metadata panel and
+  download/delete actions; the per-row menu is always visible
+- Delete holds its confirmation dialog through the in-flight request, then the row disappears
+  optimistically and the list reconciles with the server
 - See: [File Browser](features/file-browser.md)
 
 ## View Dashboard
 
 - User navigates to `/` (home)
-- Three parallel API calls load: stats, recent files, upload activity — all served from one shared bucket listing that the API warms at startup
-- While stats load, the page states it in words above the cards rather than showing silent skeletons
-- Stats cards show: total files, storage used, uploads today, total downloads
-- Upload chart shows last 7 days of upload activity as bar chart
-- Recent uploads table shows last 10 files with filename, size, type, date. Each filename links to that file's preview on `/files` — `/files` teaches "click a file to preview it", so the same gesture here has to answer rather than being inert text
-- Empty state: "No files uploaded yet" messages
-- See: [Dashboard](features/dashboard.md)
+- Session stat cards show total sessions, frames extracted, total B2 footprint, and average
+  write-amplification — all read from the session manifests
+- A **write-amplification** chart plots source vs. derived bytes per session
+- A recent-sessions panel links straight into each session's detail page
+- Empty state prompts creating the first session
+- See: [Write amplification](features/write-amplification.md)
 
 ## Change Preferences
 
 - User navigates to `/settings`
-- A banner at the top states that the page is mostly a demonstration: only Theme is wired up for real, the rest showcases what a settings page can look like when you adapt the kit
-- **Theme** (real): editing it and saving applies it immediately and persists it (`next-themes`), and the header's theme toggle drives the same state
-- **Profile and preference fields** (demo): Display name, Bio, Default file view (Tree/List/Grid), Email me on every upload, Warn me when approaching quota + threshold. Each is labelled "Demo field", persists to `localStorage` only, and drives no behaviour — there is no account system, mailer, quota banner, activity log, or List/Grid view behind them yet
-- Saving reports honestly: a success toast that separates the real theme change from the locally-stored demo values, or a warning toast if the browser blocked storage (theme still changes). It never claims a save that did not happen — the original page toasted "Settings saved" for fields that changed nothing
+- A banner states the page is mostly a demonstration: only Theme is wired up for real
+- **Theme** (real): editing and saving applies it immediately and persists it (`next-themes`);
+  the header's theme toggle drives the same state
+- **Profile and preference fields** (demo): labelled "Demo field", persist to `localStorage`
+  only, and drive no behaviour — there is no account system behind them
 - Danger Zone actions are a demo — no real delete runs
 - See: [Settings](features/settings.md)

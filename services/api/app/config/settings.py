@@ -2,11 +2,19 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    b2_endpoint: str = "https://s3.us-west-004.backblazeb2.com"
-    b2_key_id: str = ""
+    # --- Backblaze B2 (S3-compatible API) ---
+    # Standardized B2_* names. The S3 endpoint is DERIVED from the region (see
+    # the `b2_endpoint` property), so no region string is hardcoded in source.
+    b2_application_key_id: str = ""
     b2_application_key: str = ""
     b2_bucket_name: str = ""
-    b2_public_url: str = ""
+    # Region slug (e.g. `us-east-005`) taken from your bucket's S3 endpoint.
+    # Required at startup; the endpoint is built from it.
+    b2_region: str = ""
+    # Optional: base URL for building public object links (public buckets only).
+    # The app runs without it — it is NEVER required at boot. When unset, object
+    # URLs are simply omitted and everything downloads via short-lived presigns.
+    b2_public_url_base: str = ""
 
     api_port: int = 8000
     # Interactive API docs (/docs, /redoc, /openapi.json). On by default for
@@ -69,7 +77,24 @@ class Settings(BaseSettings):
     # normal user action into an API restart that drops in-flight requests.
     download_count_file: str = ".data/download_count.json"
 
+    # Location of a local clone of hustvl/4DGaussians (the training engine).
+    # Empty by default: the CPU-runnable stages need no engine, and the
+    # CUDA-only train/export stages auto-gate when this is unset or CUDA is
+    # unavailable. Set by scripts/setup_engine.sh on a CUDA host.
+    fourdgs_repo_dir: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @property
+    def b2_endpoint(self) -> str:
+        """Derive the S3 endpoint from the region — no hardcoded region string.
+
+        Backblaze B2's S3-compatible endpoints follow
+        `https://s3.<region>.backblazeb2.com`, so the endpoint is a pure
+        function of `b2_region`. This is the one derived `b2_endpoint` the
+        standards allow; there is no separate `B2_ENDPOINT` env var.
+        """
+        return f"https://s3.{self.b2_region}.backblazeb2.com"
 
     @property
     def cors_origins(self) -> list[str]:

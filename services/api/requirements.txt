@@ -2,6 +2,11 @@
 # that (tests/test_dependency_lock.py). The exact resolution lives in
 # requirements.lock (used by setup and CI); regenerate it per
 # docs/dev-workflows.md#python-dependency-updates after editing this file.
+#
+# BASE deps only: everything the CPU-runnable pipeline needs (ingest, ffmpeg
+# frame extraction, calibration, init cloud, dataset staging, preview, all B2
+# I/O, explorer, dashboard). The CUDA-only training engine (torch + 4DGaussians
+# + its CUDA submodules) is deliberately OUT of base — see scripts/setup_engine.sh.
 fastapi>=0.115.0
 uvicorn[standard]>=0.34.0
 python-multipart>=0.0.18
@@ -9,7 +14,13 @@ python-dotenv>=1.0.0
 pydantic>=2.10.0
 pydantic-settings>=2.7.0
 boto3>=1.35.0
+# numpy<2: torch/arm64 + plyfile/matplotlib ABI compatibility for the engine tail.
+numpy>=1.26,<2
 Pillow>=11.0.0
+imageio>=2.34.0
+imageio-ffmpeg>=0.5.0
+plyfile>=1.0
+matplotlib>=3.8
 PyPDF2>=3.0.0
 
 # Dev / quality

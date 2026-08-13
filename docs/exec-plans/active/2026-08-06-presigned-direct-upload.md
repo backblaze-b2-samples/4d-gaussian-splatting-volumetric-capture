@@ -1,6 +1,6 @@
 # Presigned Direct-to-B2 Upload
 
-Closes [#52](https://github.com/backblaze-b2-samples/vibe-coding-starter-kit/issues/52).
+Closes [#52](https://github.com/backblaze-b2-samples/4d-gaussian-splatting-volumetric-capture/issues/52).
 
 ## Goal
 
@@ -53,7 +53,7 @@ validation unconditional — upload to a `pending/<token>/` prefix, promote to
 `uploads/` only after verify, exclude `pending/` from listings, and add a B2
 lifecycle rule to reap abandoned pending objects. It is **off by default** to
 keep the flow simple and is the recommended hardening for anyone exposing a
-public bucket URL (`B2_PUBLIC_URL`).
+public bucket URL (`B2_PUBLIC_URL_BASE`).
 
 ### Metadata at upload
 

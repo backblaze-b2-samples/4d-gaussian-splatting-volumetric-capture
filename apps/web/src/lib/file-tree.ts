@@ -1,4 +1,4 @@
-import type { FileMetadata } from "@vibe-coding-starter-kit/shared";
+import type { FileMetadata } from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 export interface TreeFolder {
   type: "folder";

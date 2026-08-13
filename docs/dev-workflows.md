@@ -125,7 +125,7 @@ with a concurrently held `0.0.0.0` bind and would report a free port as busy.
 - Frontend typecheck: `pnpm typecheck`
 - Frontend lint: `pnpm lint`
 - Backend lint: `pnpm lint:api`
-- E2E: `pnpm test:e2e` (run `pnpm --filter @vibe-coding-starter-kit/web exec playwright install chromium` once first)
+- E2E: `pnpm test:e2e` (run `pnpm --filter @4d-gaussian-splatting-volumetric-capture/web exec playwright install chromium` once first)
 
 ### Pre-commit
 
