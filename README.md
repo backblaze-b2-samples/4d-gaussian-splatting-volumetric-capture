@@ -17,13 +17,21 @@ The headline story is **extreme data volume with write amplification**: one capt
 
 ## What it looks like
 
-**Dashboard** — session stats and the B2 write-amplification chart:
+**Dashboard** — session stats, a per-session B2 write-amplification chart, and recent captures.
 
-![Dashboard view showing session stat cards and a write-amplification chart](docs/images/b2-starterkit-dashboard1.png)
+![Dashboard showing session stat cards, a per-session write-amplification bar chart, and recent-session cards](docs/images/dashboard.png)
 
-**Explorer** — the kept full-bucket file browser with preview, download, and delete:
+**Sessions** — every 4D capture session as a card with its scene, camera and frame counts, and write-amplification.
 
-![File browser view showing a tree of B2 objects with hover actions](docs/images/b2-starterkit-fileview2.png)
+![Sessions page listing capture-session cards, each with scene, camera/frame counts, timestamp, and write-amplification](docs/images/sessions-list.png)
+
+**Session detail** — a completed run: the synchronized multi-view contact sheet, 4D metrics, per-stage B2 storage breakdown, and the pipeline timeline with the CUDA training tail auto-gated on a non-GPU host.
+
+![Session detail with a multi-view contact sheet, 4D metrics, per-stage B2 storage breakdown, and a pipeline timeline where the CUDA stages are skipped](docs/images/session-detail.png)
+
+**New session** — pick a synthetic scene and capture parameters (cameras, frames, training quality) before running the pipeline.
+
+![New session form with fields for session name, scene preset, cameras, frames per camera, and training quality](docs/images/new-session.png)
 
 ## Quick Start
 
@@ -178,7 +186,7 @@ For the full command reference (`dev:web`, `dev:api`, `lint`, `test:*`, `check:s
 
 Deploys as **one Vercel project** — the Next.js web app and FastAPI API build from the same repo and share one origin (web at `/`, API under `/api`), so there's **no CORS and no second URL to wire up**. Note that the CUDA training tail does not run on Vercel serverless; a deploy exercises the CPU pipeline (staging + all B2 I/O), and training runs on your own CUDA host.
 
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture&project-name=4d-gaussian-splatting-volumetric-capture&repository-name=4d-gaussian-splatting-volumetric-capture&demo-title=4D%20Gaussian%20Splatting%20Volumetric%20Capture&demo-description=Turn%20synchronized%20multi-camera%20video%20into%20a%204DGaussians%20dataset%20and%20trained%20volumetric%20splat%2C%20versioned%20in%20Backblaze%20B2.&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture%2Fmain%2Fdocs%2Fimages%2Fb2-starterkit-dashboard1.png&env=B2_APPLICATION_KEY_ID,B2_APPLICATION_KEY,B2_BUCKET_NAME,B2_REGION&envDescription=B2%20credentials%2C%20bucket%2C%20and%20region&envLink=https%3A%2F%2Fgithub.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture%2Fblob%2Fmain%2Finfra%2Fvercel%2FREADME.md)
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture&project-name=4d-gaussian-splatting-volumetric-capture&repository-name=4d-gaussian-splatting-volumetric-capture&demo-title=4D%20Gaussian%20Splatting%20Volumetric%20Capture&demo-description=Turn%20synchronized%20multi-camera%20video%20into%20a%204DGaussians%20dataset%20and%20trained%20volumetric%20splat%2C%20versioned%20in%20Backblaze%20B2.&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture%2Fmain%2Fdocs%2Fimages%2Fdashboard.png&env=B2_APPLICATION_KEY_ID,B2_APPLICATION_KEY,B2_BUCKET_NAME,B2_REGION&envDescription=B2%20credentials%2C%20bucket%2C%20and%20region&envLink=https%3A%2F%2Fgithub.com%2Fbackblaze-b2-samples%2F4d-gaussian-splatting-volumetric-capture%2Fblob%2Fmain%2Finfra%2Fvercel%2FREADME.md)
 
 Uploads go **directly from the browser to B2** (presigned PUT), so Vercel's 4.5 MB payload limit doesn't apply. Two things to know before a real deploy:
 
