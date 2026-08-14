@@ -26,7 +26,7 @@
     "test:e2e": "pnpm --filter @4d-gaussian-splatting-volumetric-capture/web exec playwright test"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^10.0.4"
   },
   "engines": {
     "node": ">=20",
