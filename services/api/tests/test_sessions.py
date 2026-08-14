@@ -120,9 +120,31 @@ def test_storage_write_amplification(store, monkeypatch):
     assert storage.source_bytes == 1000
     assert storage.total_bytes == 6000
     assert storage.derived_bytes == 5000
-    # total / source = 6000 / 1000 = 6.0
-    assert storage.write_amplification == 6.0
+    # Canonical write-amplification = derived / source = 5000 / 1000 = 5.0
+    # (the source→derived fan-out multiplier). Same formula the runner records
+    # in metrics.write_amplification, so the detail card and dashboard agree.
+    assert storage.write_amplification == 5.0
     assert storage.total_objects == 53
+
+
+def test_finalize_and_storage_write_amplification_agree(store, monkeypatch):
+    """The per-session detail card (get_storage) and the dashboard cards/avg
+    (metrics.write_amplification, set by the runner's _finalize) must compute
+    write-amplification the SAME way: derived / source."""
+    from app.service.session_runner import _finalize
+    from app.types.sessions import SessionArtifact
+
+    session = create_session(
+        SessionCreate(name="A", scene_preset="orbit-dancer", num_cameras=4,
+                      frames_per_camera=12, quality="draft")
+    )
+    # source = 1000; derived = frames(4000) + one dataset artifact(1000) = 5000.
+    session.metrics.source_bytes = 1000
+    session.metrics.frame_bytes = 4000
+    session.artifacts = [SessionArtifact(kind="dataset", key="k", bytes=1000)]
+    _finalize(session)
+    # derived / source = 5000 / 1000 = 5.0 — matches get_storage above.
+    assert session.metrics.write_amplification == 5.0
 
 
 @pytest.mark.asyncio

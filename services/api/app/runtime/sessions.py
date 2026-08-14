@@ -18,7 +18,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.config import settings
 from app.repo import generate_presigned_upload
-from app.service.session_runner import run_session
+from app.service.session_runner import begin_run, run_pipeline
 from app.service.sessions import (
     SessionNotFoundError,
     SessionStateError,
@@ -48,8 +48,8 @@ _VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/webm"}
 
 
 def _spawn(session_id: str) -> None:
-    """Run the pipeline on a daemon thread (patched out in unit tests)."""
-    threading.Thread(target=run_session, args=(session_id,), daemon=True).start()
+    """Run the pipeline body on a daemon thread (patched out in unit tests)."""
+    threading.Thread(target=run_pipeline, args=(session_id,), daemon=True).start()
 
 
 @router.post("/sessions", response_model=Session, status_code=201)
@@ -105,9 +105,13 @@ def run_session_endpoint(session_id: str):
         raise HTTPException(status_code=404, detail=e.detail) from None
     if session.status == "running":
         raise HTTPException(status_code=409, detail="Session is already running")
+    # Persist "running" BEFORE responding so the client's first poll/refetch
+    # reflects the run (not the stale pre-run manifest); then run the stages on
+    # a background thread. This is what lets the detail page start live-polling
+    # without a manual reload.
+    running = begin_run(session_id)
     _spawn(session_id)
-    session.status = "running"
-    return session
+    return running
 
 
 @router.get("/sessions/{session_id}/storage", response_model=SessionStorage)

@@ -56,7 +56,12 @@ object storage with no database.
 - Empty: "No sessions yet" with a create prompt
 - Loading: skeleton cards / detail skeleton
 - Error: inline `ErrorState` with retry
-- Running: stage timeline polls the manifest every 2s and advances live
+- Running: the run route persists `running` before responding, so the detail page starts
+  live-polling the manifest every 2s (no manual reload); the stage timeline advances with an
+  overall determinate progress bar, the Run button shows a disabled "Running..." state, and the
+  Artifacts & storage panel polls on the same cadence — filling in per-stage B2 object counts,
+  sizes and the write-amp figure live, then refetching once on completion so it never contradicts
+  a finished run with its empty "Run the session" state
 
 ## Verification
 - Test files: `services/api/tests/test_sessions.py`

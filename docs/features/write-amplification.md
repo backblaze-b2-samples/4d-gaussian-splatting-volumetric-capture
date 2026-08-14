@@ -38,13 +38,29 @@ across the whole bucket — the sample's headline "extreme data volume" story.
 - `SessionStats`: total/trained/running sessions, total frames, source/derived/total bytes,
   average write-amplification
 - `SessionStorage`: per-stage `StageStorage` rows + `source_bytes`, `derived_bytes`,
-  `total_bytes`, `total_objects`, `write_amplification` (total / source)
+  `total_bytes`, `total_objects`, `write_amplification` (derived / source — the
+  source→derived fan-out multiplier)
+
+## Canonical formula (one definition, both surfaces)
+`write_amplification = derived_bytes / source_bytes` — the source→derived fan-out
+multiplier. Both surfaces use it so they always agree:
+- Detail card (`GET /sessions/{id}/storage` → `service/sessions.py::get_storage`) computes
+  it live from the per-stage B2 listing.
+- Dashboard cards + average read `metrics.write_amplification`, which the runner records in
+  `service/session_runner.py::_finalize` from the same `derived / source`.
+
+Because the detail card shows Source and Derived, `Derived ÷ Source` equals the displayed
+ratio, so the figures reconcile.
 
 ## Flow
 - Dashboard reads `GET /sessions/stats` and the session list, renders the stat cards and the
   source-vs-derived bar chart
 - The detail page reads `GET /sessions/{id}/storage` and renders the per-stage table with the
-  write-amplification multiplier
+  write-amplification multiplier. The panel refreshes live: `useSessionStorage` is driven by
+  the session status and polls on the same 2s cadence as the manifest while the run is in
+  progress, then refetches once when the run reaches a terminal state (the final dataset and
+  preview objects are written just before the manifest flips) and stops — so the panel fills in
+  without a manual reload and a finished session is not polled forever
 
 ## Edge Cases
 - No runs yet → the chart and cards show an empty state (no divide-by-zero; amplification is 0)
@@ -56,10 +72,12 @@ across the whole bucket — the sample's headline "extreme data volume" story.
 - Error: inline `ErrorState` with retry
 
 ## Verification
-- Test files: `services/api/tests/test_sessions.py` (`test_storage_write_amplification`)
+- Test files: `services/api/tests/test_sessions.py` (`test_storage_write_amplification`,
+  `test_finalize_and_storage_write_amplification_agree`)
 - Focused verify command: `pnpm test:api`
 - Default pre-PR verify command: `pnpm verify`
-- Pass criteria: storage math (total / source, derived split, object counts) is correct
+- Pass criteria: storage math (derived / source, derived split, object counts) is correct,
+  and `get_storage` agrees with the runner's `_finalize` on the write-amplification formula
 
 ## Related Docs
 - [README.md](../../README.md)

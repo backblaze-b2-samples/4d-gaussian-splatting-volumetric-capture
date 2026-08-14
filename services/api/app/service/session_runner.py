@@ -61,8 +61,15 @@ def _add_artifact(session: Session, kind: str, key: str, ref: dict | None = None
     return nbytes
 
 
-def run_session(session_id: str) -> Session:
-    """Execute the full pipeline for one session. Never raises to the caller."""
+def begin_run(session_id: str) -> Session:
+    """Reset the manifest and mark the session running, persisting immediately.
+
+    `POST /sessions/{id}/run` calls this synchronously *before* it responds, so a
+    poll issued right after the response already reads "running" (not the stale
+    pre-run manifest). `run_pipeline` then executes the stages on a background
+    thread. Splitting the begin from the pipeline body is what lets the detail
+    page transition into live polling without a manual reload.
+    """
     session = load_session(session_id)
     if session is None:
         raise ValueError(f"session {session_id} not found")
@@ -80,7 +87,19 @@ def run_session(session_id: str) -> Session:
         stage.started_at = None
         stage.finished_at = None
     save_session(session)
+    return session
 
+
+def run_pipeline(session_id: str) -> Session:
+    """Execute every pipeline stage for an already-begun session.
+
+    Loads a fresh manifest (so it never shares mutable state with the object the
+    run route serialized in its response) and never raises to the caller — any
+    stage failure is contained in the manifest.
+    """
+    session = load_session(session_id)
+    if session is None:
+        raise ValueError(f"session {session_id} not found")
     try:
         width, height = QUALITY_RESOLUTION[session.params.quality]
         cameras = calibration.generate_cameras(

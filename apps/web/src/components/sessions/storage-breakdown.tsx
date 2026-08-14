@@ -12,11 +12,23 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStorage } from "@/lib/queries";
+import type { SessionStatus } from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 // The sample's own scoped explorer: one session's B2 footprint by pipeline
 // stage, with the write-amplification breakdown (source video -> derived bytes).
-export function StorageBreakdown({ sessionId }: { sessionId: string }) {
-  const { data, isLoading, error, refetch } = useSessionStorage(sessionId);
+// `status` drives live refresh: while the run is in progress the panel polls on
+// the same cadence as the rest of the detail page and stops once it finishes.
+export function StorageBreakdown({
+  sessionId,
+  status,
+}: {
+  sessionId: string;
+  status: SessionStatus;
+}) {
+  const { data, isLoading, error, refetch } = useSessionStorage(
+    sessionId,
+    status,
+  );
 
   return (
     <Card>

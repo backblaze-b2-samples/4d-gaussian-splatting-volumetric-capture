@@ -1,7 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it } from "vitest";
-import { dropDeletedFileFromCache, qk } from "@/lib/queries";
-import type { FileMetadata } from "@4d-gaussian-splatting-volumetric-capture/shared";
+import { dropDeletedFileFromCache, pollWhileRunning, qk, RUN_POLL_MS } from "@/lib/queries";
+import type {
+  FileMetadata,
+  SessionStatus,
+} from "@4d-gaussian-splatting-volumetric-capture/shared";
 
 function file(key: string): FileMetadata {
   return {
@@ -82,5 +85,26 @@ describe("dropDeletedFileFromCache", () => {
       dropDeletedFileFromCache(qc, "uploads/missing.txt"),
     ).not.toThrow();
     expect(qc.getQueryData(qk.files())).toBeUndefined();
+  });
+});
+
+describe("pollWhileRunning", () => {
+  it("polls on the run cadence while a run is in progress", () => {
+    expect(pollWhileRunning("running")).toBe(RUN_POLL_MS);
+  });
+
+  it("stops polling once the session reaches any terminal state", () => {
+    // Both the session manifest and the Artifacts & storage panel rely on this to
+    // refetch live during a run and then quiesce — no infinite polling once done.
+    const terminalOrIdle: SessionStatus[] = [
+      "draft",
+      "ready",
+      "done",
+      "failed",
+    ];
+    for (const status of terminalOrIdle) {
+      expect(pollWhileRunning(status)).toBe(false);
+    }
+    expect(pollWhileRunning(undefined)).toBe(false);
   });
 });

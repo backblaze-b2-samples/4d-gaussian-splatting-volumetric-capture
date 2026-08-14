@@ -88,7 +88,11 @@ export default function SessionDetailPage({
         <div className="flex shrink-0 items-center gap-2">
           <Button size="sm" className="h-8" onClick={onRun} disabled={running || run.isPending}>
             <Play className="h-3.5 w-3.5" />
-            {running ? "Running..." : session.status === "done" ? "Re-run" : "Run"}
+            {running || run.isPending
+              ? "Running..."
+              : session.status === "done"
+                ? "Re-run"
+                : "Run"}
           </Button>
           {preRun && (
             <Button asChild size="sm" variant="outline" className="h-8">
@@ -131,7 +135,7 @@ export default function SessionDetailPage({
         </div>
         <div className="space-y-6">
           <MetricsCard session={session} />
-          <StorageBreakdown sessionId={id} />
+          <StorageBreakdown sessionId={id} status={session.status} />
         </div>
       </div>
     </div>

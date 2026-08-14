@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   useMutation,
   useQuery,
@@ -30,6 +31,7 @@ import type {
   FileMetadataDetail,
   Session,
   SessionCreate,
+  SessionStatus,
   SessionUpdate,
 } from "@4d-gaussian-splatting-volumetric-capture/shared";
 
@@ -54,6 +56,21 @@ export const qk = {
 };
 
 export type Health = Awaited<ReturnType<typeof getHealth>>;
+
+/** Poll cadence for a run in progress — matches the detail page's 2s manifest poll. */
+export const RUN_POLL_MS = 2000;
+
+/**
+ * `refetchInterval` policy shared by every query that tracks a running session:
+ * poll every 2s while the run is in progress, then stop once it reaches a terminal
+ * state so a finished session isn't polled forever. Exported so the cadence is
+ * pinned by one unit test instead of drifting per call site.
+ */
+export function pollWhileRunning(
+  status: SessionStatus | undefined,
+): number | false {
+  return status === "running" ? RUN_POLL_MS : false;
+}
 
 /**
  * Gate a query on something being open/visible. Deliberately the only option we
@@ -212,16 +229,45 @@ export function useSession(id: string | undefined) {
     queryKey: qk.session(id ?? ""),
     queryFn: () => getSession(id as string),
     enabled: !!id,
-    refetchInterval: (query) =>
-      query.state.data?.status === "running" ? 2000 : false,
+    refetchInterval: (query) => pollWhileRunning(query.state.data?.status),
   });
 }
 
-export function useSessionStorage(id: string | undefined, enabled = true) {
+/**
+ * One session's B2 storage footprint, backing the "Artifacts & storage" panel.
+ *
+ * `status` is the owning session's status (already polled live by `useSession`),
+ * so this query mirrors that live behaviour instead of freezing on its empty
+ * draft-mount fetch until a manual reload:
+ *  - While the run is "running" it polls on the same 2s cadence, so per-stage
+ *    object counts, sizes and the write-amp figure fill in as stages complete.
+ *  - The final dataset + preview objects land in the last stage a beat before the
+ *    manifest flips to a terminal status, so the last in-run poll can miss them.
+ *    On the running -> terminal transition we invalidate once to refetch the
+ *    complete footprint. This only invalidates the cache; the fetch still flows
+ *    through this hook's `queryFn` (no bare useEffect + fetch).
+ */
+export function useSessionStorage(
+  id: string | undefined,
+  status?: SessionStatus,
+  enabled = true,
+) {
+  const qc = useQueryClient();
+  const wasRunning = useRef(status === "running");
+
+  useEffect(() => {
+    const isTerminal = status === "done" || status === "failed";
+    if (id && wasRunning.current && isTerminal) {
+      qc.invalidateQueries({ queryKey: qk.sessionStorage(id) });
+    }
+    wasRunning.current = status === "running";
+  }, [id, status, qc]);
+
   return useQuery({
     queryKey: qk.sessionStorage(id ?? ""),
     queryFn: () => getSessionStorage(id as string),
     enabled: enabled && !!id,
+    refetchInterval: pollWhileRunning(status),
   });
 }
 
@@ -249,8 +295,14 @@ export function useRunSession(id: string) {
   return useMutation<Session, ApiError, void>({
     mutationFn: () => runSession(id),
     onSuccess: (session) => {
-      // Seed the cache as "running" so the poll (useSession) takes over live.
+      // Optimistically flip to "running" so the badge, Run button and timeline
+      // update instantly, then trigger an ACTUAL refetch of this session (not
+      // just a cache seed) so useSession's refetchInterval engages and drives
+      // the live timeline. POST /run persists "running" before responding, so
+      // this refetch reads "running" — not the stale pre-run manifest — and the
+      // detail page advances to completion without a manual reload.
       qc.setQueryData(qk.session(id), session);
+      qc.refetchQueries({ queryKey: qk.session(id), exact: true });
       qc.invalidateQueries({ queryKey: qk.sessions() });
     },
   });

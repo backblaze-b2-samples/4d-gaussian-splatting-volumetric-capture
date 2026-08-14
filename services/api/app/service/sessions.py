@@ -142,7 +142,11 @@ def get_storage(session_id: str) -> SessionStorage:
     total_bytes = sum(r["bytes"] for r in rows)
     total_objects = sum(r["object_count"] for r in rows)
     derived_bytes = total_bytes - source_bytes
-    amp = (total_bytes / source_bytes) if source_bytes else 0.0
+    # Canonical write-amplification = derived / source (the source→derived
+    # fan-out multiplier). This is the SAME formula the runner records in
+    # `metrics.write_amplification` (session_runner._finalize) and that drives
+    # the dashboard cards + average, so the detail card and dashboard agree.
+    amp = (derived_bytes / source_bytes) if source_bytes else 0.0
     return SessionStorage(
         session_id=session_id,
         stages=stages,

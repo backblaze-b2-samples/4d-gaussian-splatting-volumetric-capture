@@ -27,8 +27,10 @@ backed by object storage, not a database.
 ## Run a Session
 
 - On the detail page (`/sessions/[id]`) the user clicks **Run**
-- The API kicks the pipeline onto a background thread and returns immediately; the page
-  polls the manifest every 2s so the stage timeline advances **live**
+- The API marks the session `running` and returns immediately (the pipeline runs on a
+  background thread); the page polls the manifest every 2s so the stage timeline advances
+  **live** — no manual reload — with an overall determinate progress bar (settled stages /
+  total)
 - Stages: ingest → extract → calibrate → stage → train → export. The CPU stages run for
   real (synthetic footage is generated if no source video was ingested); the CUDA-only
   train/export tail auto-gates on a non-CUDA host and is marked "skipped (CUDA required)"

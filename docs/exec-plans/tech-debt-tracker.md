@@ -3,6 +3,11 @@
 
 Known tech debt items. Agents update this when they discover or create tech debt.
 
+## 2026-08-14 — verify
+
+- Session detail, Pipeline stages during a run — the "Overall progress N/6 · P%" bar is stage-granular, so during a single long stage (ingest/extract can run ~50s on defaults, minutes on the heaviest 12×48/high config) it holds at one value even though other live signals advance (running-stage pulse dot, live-growing Artifacts & storage object counts). Add an intra-stage or time-based progress hint so the bar itself advances on a long single stage → nitpick, demoted from friction by the adversarial gate (feedback is present, just coarse) (.local/verify/B/05-mid-run-2.png).
+- Dashboard vs session-detail write-amplification display precision — the Dashboard session card renders write-amp to 1 decimal (e.g. `2.3x`) while the detail "Artifacts & storage" card shows 2 decimals (`2.33x`). Same underlying value now (both use `derived/source` after this run's fix); only the display precision differs. Align the formatting → nitpick (.local/verify/C/dash-01-overview.png).
+
 ## Open
 
 | Description | Impact | Proposed Resolution | Priority |
