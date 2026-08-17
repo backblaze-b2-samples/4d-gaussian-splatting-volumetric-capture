@@ -15,9 +15,6 @@ The headline story is **extreme data volume with write amplification**: one capt
 
 > **No GPU needed to try it.** The CPU-runnable stages — ingest, frame extraction, calibration, init cloud, dataset staging, previews, and *all* B2 I/O — run for real on any machine. Only 4D *training* needs CUDA; on a non-CUDA host that stage auto-gates and the app emits the exact command to run on a GPU box (see [4D training](docs/features/fourd-training.md)).
 
-<!-- labs-project-page -->
-Explore this sample on the [Backblaze Labs project page](https://backblazelabs.com/projects/4d-gaussian-splatting-volumetric-capture/).
-
 ## What it looks like
 
 **Dashboard** — session stats, a per-session B2 write-amplification chart, and recent captures.
